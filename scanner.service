@@ -1,0 +1,9 @@
+[Unit]
+Description=Scanner Service
+
+[Service]
+ExecStart=/home/pi/scanner.py -d
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
