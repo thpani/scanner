@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>My First Admin</title>
+    <link rel="stylesheet" href="node_modules/ng-admin/build/ng-admin.min.css">
+  </head>
+  <body ng-app="myApp">
+    <div ui-view="ng-admin"></div>
+    <script src="node_modules/ng-admin/build/ng-admin.min.js"></script>
+    <script type="text/javascript">
+    var myApp = angular.module('myApp', ['ng-admin']);
+    myApp.config(['RestangularProvider', function (RestangularProvider) {
+      RestangularProvider.addFullRequestInterceptor(function(element, operation, what, url, headers, params) {
+        delete params._page;
+        delete params._perPage;
+        delete params._sortField;
+        delete params._sortDir;
+        delete params._filters;
+        return { params: params };
+      })
+      RestangularProvider.addResponseInterceptor(function(data, operation, what, url, response) {
+        return data.resources !== undefined ? data.resources : data;
+      });
+    }]);
+    myApp.config(['NgAdminConfigurationProvider', function(nga) {
+      var admin = nga.application('My First Admin')
+        .baseApiUrl('http://localhost:5000/');
+      var list = nga.entity('lists');
+      list.listView().fields([
+        nga.field('id'),
+        nga.field('name')
+      ]);
+      list.creationView().fields(list.listView().fields());
+      list.editionView().fields(list.listView().fields());
+      admin.addEntity(list);
+      var product = nga.entity('products').identifier(nga.field('ean'));
+      product.listView().fields([
+        nga.field('ean').isDetailLink(true),
+        nga.field('name'),
+        nga.field('list', 'reference')
+          .targetEntity(list)
+          .targetField(nga.field('name'))
+          .label('List')
+      ]);
+      product.editionView().fields(product.listView().fields());
+      admin.addEntity(product);
+      nga.configure(admin);
+    }]);
+    </script>
+  </body>
+</html>
