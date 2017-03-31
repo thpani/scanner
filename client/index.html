@@ -18,9 +18,6 @@
         delete params._filters;
         return { params: params };
       })
-      RestangularProvider.addResponseInterceptor(function(data, operation, what, url, response) {
-        return data.resources !== undefined ? data.resources : data;
-      });
     }]);
     myApp.config(['NgAdminConfigurationProvider', function(nga) {
       var admin = nga.application('My First Admin')
