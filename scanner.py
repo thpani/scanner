@@ -151,8 +151,6 @@ class Reader(Thread):
             return input()
 
 def lookup_db(conn, ean):
-    # sqlite> CREATE TABLE products (ean TEXT PRIMARY KEY, name TEXT, list INTEGER, FOREIGN KEY(list) REFERENCES lists (id));
-    # sqlite> CREATE TABLE lists (id INTEGER PRIMARY KEY);
     c = conn.cursor()
     c.execute('SELECT name, list FROM products WHERE ean=?', (ean,))
     row = c.fetchone()
@@ -162,6 +160,7 @@ def add_db(conn, ean, product, listid):
     c = conn.cursor()
     c.execute('INSERT INTO products (ean, name, list) VALUES (?, ?, ?)', (ean, product, listid))
     conn.commit()
+
 
 def main():
     global USE_EVENT_DEV
@@ -182,24 +181,28 @@ def main():
     r = Reader(q)
     r.start()
 
-    db_conn = sqlite3.connect(DB_FILE)
+    db = sqlite3.connect(DB_FILE)
+    with open('schema.sql', mode='r') as f:
+        db.cursor().executescript(f.read())
+    db.commit()
 
     print("Ready.", file=sys.stderr)
 
     while True:
         ean = q.get()
-        product = lookup_db(db_conn, ean)
+        product = lookup_db(db, ean)
 
         # if not in DB, lookup
         if product is None:
             product_name, listid = lookup_ean(ean), WUNDERLIST_LIST_ID
             if product_name is None:
                 print('Lookup ✘', 'Failed to lookup EAN', ean, file=sys.stderr)
-                m.send('Failed to lookup EAN', ean + '; Can you tell me what it is?')
-                continue
+                m.send('Failed to lookup EAN', ean + '; Can you please edit it in my database?')
+                product_name, listid = '??? EAN: {}'.format(ean), WUNDERLIST_LIST_ID
+                add_db(db, ean, product_name, listid)
             else:
                 print('Lookup ✔ (from codecheck.info)', product_name, file=sys.stderr)
-                add_db(db_conn, ean, product_name, listid)
+                add_db(db, ean, product_name, listid)
         else:
             product_name, listid = product
             print('Lookup ✔ (from DB)', product_name, file=sys.stderr)
