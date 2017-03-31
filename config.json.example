@@ -1,0 +1,14 @@
+{
+  "pushbullet": {
+    "access_key": "ACCESS_TOKEN_HERE",
+    "send_to_chats": ["LIST_OF_NAMES"]
+  },
+  "wunderlist": {
+    "access_token": "ACCESS_TOKEN_HERE",
+    "clientid": "CLIENT_ID_HERE",
+    "default_list": DEFAULT_LIST_ID
+  },
+  "scanner": {
+    "dev": "/dev/input/event0"
+  }
+}
