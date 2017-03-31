@@ -39,6 +39,7 @@
           .targetField(nga.field('name'))
           .label('List')
       ]);
+      product.creationView().fields(product.listView().fields());
       product.editionView().fields(product.listView().fields());
       admin.addEntity(product);
       nga.configure(admin);
