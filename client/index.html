@@ -32,7 +32,9 @@
       admin.addEntity(list);
       var product = nga.entity('products').identifier(nga.field('ean'));
       product.listView().fields([
-        nga.field('ean').isDetailLink(true),
+        nga.field('ean')
+          .isDetailLink(true)
+          .label('EAN'),
         nga.field('name'),
         nga.field('list', 'reference')
           .targetEntity(list)
