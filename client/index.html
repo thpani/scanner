@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>My First Admin</title>
+    <title>Scanner Admin</title>
     <link rel="stylesheet" href="node_modules/ng-admin/build/ng-admin.min.css">
   </head>
   <body ng-app="myApp">
@@ -10,11 +10,11 @@
     <script type="text/javascript">
     var myApp = angular.module('myApp', ['ng-admin']);
     myApp.config(['NgAdminConfigurationProvider', function(nga) {
-      var admin = nga.application('My First Admin')
+      var admin = nga.application('Scanner Admin')
         .baseApiUrl('http://localhost:5000/');
       var list = nga.entity('lists');
       list.listView().fields([
-        nga.field('id'),
+        nga.field('id').label('Wunderlist List ID'),
         nga.field('name')
       ]);
       list.creationView().fields(list.listView().fields());
