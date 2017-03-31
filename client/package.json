@@ -1,0 +1,8 @@
+{
+  "name": "Scanner client",
+  "version": "0.0.1",
+  "author": "Thomas Pani",
+  "dependencies": {
+    "ng-admin": "^1.0.2"
+  }
+}
