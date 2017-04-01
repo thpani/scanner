@@ -1,0 +1,9 @@
+[Unit]
+Description=Scanner Frontend Service
+
+[Service]
+ExecStart=/home/pi/scannerfe.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
