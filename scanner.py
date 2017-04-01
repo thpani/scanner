@@ -129,29 +129,30 @@ class Reader(Thread):
     def __init__(self, queue):
         super().__init__()
         self.queue = queue
+
     def run(self):
-        while True:
-            r = self.readline()
-            self.queue.put(r)
-    def readline(self):
         if USE_EVENT_DEV:
             import evdev
             dev = evdev.InputDevice(BARCODE_SCANNER_ENV)
-    
             list = []
-            for event in dev.read_loop():
-                if event.type == evdev.ecodes.EV_KEY:
-                     x = evdev.categorize(event)
-                     if x.keystate == 0:
-                         char = x.keycode[4:]
-                         if char == 'ENTER':
-                             result = ''.join(list)
-                             print('input={}'.format(result))
-                             return result
-                         else:
-                             list.append(char)
-        else:
-            return input()
+
+        while True:
+            if USE_EVENT_DEV:
+                for event in dev.read_loop():
+                    if event.type == evdev.ecodes.EV_KEY:
+                        x = evdev.categorize(event)
+                        if x.keystate == 0:
+                            char = x.keycode[4:]
+                            if char == 'ENTER':
+                                r = ''.join(list)
+                                print('input={}'.format(result))
+                                self.queue.put(r)
+                                list = []
+                            else:
+                                list.append(char)
+            else:
+                r = input()
+                self.queue.put(r)
 
 def lookup_db(conn, ean):
     c = conn.cursor()
