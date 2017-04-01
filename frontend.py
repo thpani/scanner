@@ -161,4 +161,4 @@ api.add_resource(Product, '/products/<ean>')
 if __name__ == '__main__':
     init_db()
     debug = len(sys.argv) > 1 and sys.argv[1] == '--debug'
-    app.run(debug=debug)
+    app.run(host='0.0.0.0', debug=debug)
