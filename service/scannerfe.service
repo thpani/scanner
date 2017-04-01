@@ -2,7 +2,7 @@
 Description=Scanner Frontend Service
 
 [Service]
-ExecStart=/home/pi/scannerfe.py
+ExecStart=/home/thomas/scannerfe.py
 Restart=always
 
 [Install]

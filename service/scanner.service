@@ -2,7 +2,7 @@
 Description=Scanner Service
 
 [Service]
-ExecStart=/home/pi/scanner.py -d
+ExecStart=/home/thomas/scanner.py -d
 Restart=always
 
 [Install]
