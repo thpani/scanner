@@ -168,7 +168,8 @@ def add_db(conn, ean, product, listid):
 def init_db():
     mkdir_p(os.path.dirname(DB_FILE))
     db = sqlite3.connect(DB_FILE)
-    with open('schema.sql', mode='r') as f:
+    spath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'schema.sql')
+    with open(spath, mode='r') as f:
         db.cursor().executescript(f.read())
     db.commit()
 
