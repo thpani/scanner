@@ -1,5 +1,5 @@
 {
-  "name": "Scanner client",
+  "name": "scanner_client",
   "version": "0.0.1",
   "author": "Thomas Pani",
   "dependencies": {
