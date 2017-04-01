@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import errno
+import os
 from threading import Thread
 from queue import Queue
 import sqlite3
@@ -24,7 +26,7 @@ with open('config.json') as f:
     WUNDERLIST_LIST_ID = j['wunderlist']['default_list']
     BARCODE_SCANNER_ENV = j['scanner']['dev']
 MAP = {}
-DB_FILE = 'scanner.db'
+DB_FILE = '/var/db/scanner/scanner.db'
 USE_EVENT_DEV = False
 
 ###
@@ -161,6 +163,22 @@ def add_db(conn, ean, product, listid):
     c.execute('INSERT INTO products (ean, name, list) VALUES (?, ?, ?)', (ean, product, listid))
     conn.commit()
 
+def init_db():
+    mkdir_p(os.path.dirname(DB_FILE))
+    db = sqlite3.connect(DB_FILE)
+    with open('schema.sql', mode='r') as f:
+        db.cursor().executescript(f.read())
+    db.commit()
+
+# http://stackoverflow.com/a/600612/1161037
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 def main():
     global USE_EVENT_DEV
@@ -181,10 +199,7 @@ def main():
     r = Reader(q)
     r.start()
 
-    db = sqlite3.connect(DB_FILE)
-    with open('schema.sql', mode='r') as f:
-        db.cursor().executescript(f.read())
-    db.commit()
+    init_db()
 
     print("Ready.", file=sys.stderr)
 

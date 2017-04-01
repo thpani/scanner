@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
-from flask import request, g, Flask, Response
-from flask_restful import Resource, Api, reqparse
+import errno
+import os
 import sqlite3
 
-DATABASE = 'scanner.db'
+from flask import request, g, Flask, Response
+from flask_restful import Resource, Api, reqparse
+
+DATABASE = '/var/db/scanner/scanner.db'
 
 app = Flask(__name__)
 api = Api(app)
@@ -13,6 +16,7 @@ api = Api(app)
 # http://flask.pocoo.org/docs/0.12/patterns/sqlite3/
 
 def init_db():
+    mkdir_p(os.path.dirname(DATABASE))
     with app.app_context():
         db = get_db()
         with app.open_resource('schema.sql', mode='r') as f:
@@ -49,6 +53,16 @@ def add_cors_headers(response):
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return response
 
+
+# http://stackoverflow.com/a/600612/1161037
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 class List(Resource):
     def get(self, id):
