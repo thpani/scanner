@@ -172,6 +172,7 @@ def init_db():
     with open(spath, mode='r') as f:
         db.cursor().executescript(f.read())
     db.commit()
+    return db
 
 # http://stackoverflow.com/a/600612/1161037
 def mkdir_p(path):
@@ -200,7 +201,7 @@ def main():
     r = Reader(q)
     r.start()
 
-    init_db()
+    db = init_db()
 
     print("Ready.", file=sys.stderr)
 
