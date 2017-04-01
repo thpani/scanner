@@ -10,8 +10,7 @@
     <script type="text/javascript">
     var myApp = angular.module('myApp', ['ng-admin']);
     myApp.config(['NgAdminConfigurationProvider', function(nga) {
-      var admin = nga.application('Scanner Admin')
-        .baseApiUrl('http://localhost:5000/');
+      var admin = nga.application('Scanner Admin');
       var list = nga.entity('lists');
       list.listView().fields([
         nga.field('id').label('Wunderlist List ID'),
