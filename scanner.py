@@ -15,7 +15,7 @@ from pushbullet import Pushbullet
 
 ### CONFIGURATION ###
 
-with open('config.json') as f:
+with open('/etc/scanner.json') as f:
     j = json.load(f)
     PUSHBULLET_ACCESS_KEY = j['pushbullet']['access_key']
     PUSHBULLET_SEND_TO_CHATS = j['pushbullet']['send_to_chats']
