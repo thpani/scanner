@@ -182,7 +182,7 @@ def mkdir_p(path):
 
 def main():
     global USE_EVENT_DEV
-    if len(sys.argv) > 1 and sys.argv[1] == '-d':
+    if len(sys.argv) > 1 and sys.argv[1] == '--evdev':
         import evdev
 
         USE_EVENT_DEV = True

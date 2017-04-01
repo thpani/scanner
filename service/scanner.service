@@ -2,7 +2,7 @@
 Description=Scanner Service
 
 [Service]
-ExecStart=/home/thomas/scanner.py -d
+ExecStart=/home/thomas/scanner.py --evdev
 Restart=always
 
 [Install]
