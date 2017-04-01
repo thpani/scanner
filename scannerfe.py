@@ -3,6 +3,7 @@
 import errno
 import os
 import sqlite3
+import sys
 
 from flask import request, g, Flask, Response
 from flask_restful import Resource, Api, reqparse
@@ -158,4 +159,5 @@ api.add_resource(Product, '/products/<ean>')
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    debug = len(sys.argv) > 1 and sys.argv[1] == '--debug'
+    app.run(debug=debug)
