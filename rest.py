@@ -9,7 +9,7 @@ from flask_restful import Resource, Api, reqparse
 
 DATABASE = '/var/db/scanner/scanner.db'
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='client', static_url_path='')
 api = Api(app)
 
 # DB helpers
@@ -53,6 +53,10 @@ def add_cors_headers(response):
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return response
 
+# serve index.html as /
+@app.route('/')
+def root():
+    return app.send_static_file('index.html')
 
 # http://stackoverflow.com/a/600612/1161037
 def mkdir_p(path):
@@ -63,6 +67,10 @@ def mkdir_p(path):
             pass
         else:
             raise
+
+##
+## REST resources
+##
 
 class List(Resource):
     def get(self, id):
