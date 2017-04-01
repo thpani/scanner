@@ -145,7 +145,7 @@ class Reader(Thread):
                             char = x.keycode[4:]
                             if char == 'ENTER':
                                 r = ''.join(list)
-                                print('input={}'.format(result))
+                                print('input={}'.format(r))
                                 self.queue.put(r)
                                 list = []
                             else:
