@@ -1,0 +1,54 @@
+\documentclass{article}
+
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{fontspec}
+
+\usepackage{titlesec}
+
+\titlespacing*{\section}{0pt}{9ex}{1ex}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\usepackage{GS1}
+
+\newcommand*\printean[3]{%
+  \begin{tabular}{c}
+    #1\\
+  \ifnum\pdfstrcmp{#2}{}=0\parbox{4em}{}\else\parbox{\linewidth}{\EANBarcode[code=#3,module_height=15mm]{#2}}\fi
+  \end{tabular}%
+  \hspace{2em}
+}
+\newcommand*\ean[2]{\printean{#1}{#2}{EAN-8}}
+\newcommand*\eanl[2]{\printean{#1}{#2}{EAN-13}}
+
+% http://www.gs1.org/check-digit-calculator
+
+\begin{document}
+\pagenumbering{gobble}
+
+\section*{Getränke}
+\ean{Milch}{24057424}
+\ean{Orangensaft}{24013932}
+
+\section*{Obst \& Gemüse}
+\ean{Obst}{99900212}
+\ean{Gemüse}{99900229}
+\ean{Cherrytomaten}{29040650}
+\ean{Paprika}{99900236}
+
+\section*{Grundnahrungsmittel}
+\ean{Eier}{24015660}
+\ean{Gebäck}{99900311}
+\ean{Butter}{24004411}
+\ean{Aufschnitt}{99900328}
+
+\section*{Tiefkühl}
+\ean{Garnelen}{24084970}
+\ean{Meeresfrüchte}{24085304}
+
+\section*{Asia}
+\ean{Basil}{99900519}
+\ean{Eggplants}{99900526}
+\ean{Chilis}{99900533}
+\eanl{Kokosmilch}{8851613101392}
+\end{document}
