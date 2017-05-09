@@ -108,6 +108,39 @@ class Wunderlist:
                 '{}x {}'.format(p.count+1, product_name),
                 p.task['revision']
             )
+    
+    def sort_list(self, listid):
+        r = requests.get(
+            Wunderlist.api_url+'/task_comments',
+            headers=Wunderlist.headers,
+            params={ 'list_id': listid }
+        )
+        if r.status_code != 200:
+            print('Get list comments (list {}) failed: {} {}'.format(listid, r.status_code, r.json()), file=sys.stderr)
+            raise # TODO
+
+        comments = [ comment for comment in r.json() if 'Shelf: ' in comment['text'] ]
+        comments = sorted(comments, key=lambda comment: re.search('Shelf: (.*)', comment['text']).group(1).split(','))
+        task_ids = [ comment['task_id'] for comment in comments ]
+
+        r = requests.get(
+            Wunderlist.api_url+'/task_positions',
+            headers=Wunderlist.headers,
+            params={ 'list_id': listid }
+        )
+        if r.status_code != 200:
+            print('Get list positions (list {}) failed: {} {}'.format(listid, r.status_code, r.json()), file=sys.stderr)
+            raise # TODO
+
+        assert(len(r.json()) == 1)
+        revision = r.json()[0]['revision']
+
+        r = requests.patch(
+            Wunderlist.api_url+'/task_positions/{}'.format(listid),
+            headers=Wunderlist.headers,
+            json={ 'revision': revision, 'values': task_ids }
+        )
+        return r.status_code == 200, r.json()
 
 def lookup_ean(ean):
     r = requests.get('http://www.codecheck.info/product.search', params={'q':ean, 'OK': 'Suchen'})
@@ -217,6 +250,16 @@ def main():
 
     while True:
         ean = q.get()
+
+        if ean == '00000000':
+            succ, json_response = w.sort_list(WUNDERLIST_LIST_ID)
+            if succ:
+                print('List sort ✔', file=sys.stderr)
+            else:
+                print('List sort ✘', file=sys.stderr)
+                print(' ', json_response, file=sys.stderr)
+            continue
+
         product = lookup_db(db, ean)
 
         # if not in DB, lookup
