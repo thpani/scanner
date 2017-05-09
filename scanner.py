@@ -49,13 +49,22 @@ class Wunderlist:
         def __init__(self, name, count, task):
             self.name, self.count, self.task = name, count, task
 
-    def add_task(self, text, listid):
+    def add_task(self, ean, text, listid):
         r = requests.post(
             Wunderlist.api_url+'/tasks',
             headers=Wunderlist.headers,
             json={ 'list_id': listid, 'title': text }
         )
-        return r.status_code == 201, r.json()
+        if r.status_code != 201:
+            return r.status_code == 201, r.json()
+
+        r_comment = requests.post(
+            Wunderlist.api_url+'/task_comments',
+            headers=Wunderlist.headers,
+            json={ 'task_id': r.json()['id'], 'text': 'EAN: {}, Shelf: {}'.format(ean, '1,1') }
+        )
+
+        return r_comment.status_code == 201, r_comment.json()
 
     def modify_task(self, id, text, revision):
         r = requests.patch(
@@ -90,7 +99,7 @@ class Wunderlist:
         products = self.get_products(listid)
         plist = [ p for p in products if p.name == product_name ]  # tasks that contain `product`
         if not plist:
-            return self.add_task(product_name, listid)
+            return self.add_task(ean, product_name, listid)
         else:
             p = plist[0]
             return self.modify_task(
@@ -224,7 +233,7 @@ def main():
             product_name, listid = product
             print('Lookup ✔ (from DB)', product_name, file=sys.stderr)
 
-        task_created, json_response = w.add_product(product_name, listid)
+        task_created, json_response = w.add_product(ean, product_name, listid)
         if task_created:
             print('Task add ✔', product_name, file=sys.stderr)
         else:
