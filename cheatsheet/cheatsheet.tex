@@ -14,7 +14,7 @@
 \newcommand*\printean[3]{%
   \begin{tabular}{c}
     #1\\
-  \ifnum\pdfstrcmp{#2}{}=0\parbox{4em}{}\else\parbox{\linewidth}{\EANBarcode[code=#3,module_height=15mm]{#2}}\fi
+  \ifnum\pdfstrcmp{#2}{}=0\parbox{4em}{}\else\parbox{\linewidth}{\EANBarcode[code=#3,module_height=10mm]{#2}}\fi
   \end{tabular}%
   \hspace{2em}
 }
@@ -25,6 +25,9 @@
 
 \begin{document}
 \pagenumbering{gobble}
+
+\section*{META}
+\ean{Liste sortieren}{00000000}
 
 \section*{Getränke}
 \ean{Milch}{24057424}
