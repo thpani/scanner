@@ -1,2 +1,5 @@
 CREATE TABLE IF NOT EXISTS products (ean TEXT PRIMARY KEY, name TEXT, list INTEGER, FOREIGN KEY(list) REFERENCES lists (id));
 CREATE TABLE IF NOT EXISTS lists (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE IF NOT EXISTS version (major INTEGER PRIMARY KEY);
+-- if version table is empty , entery "1"
+INSERT INTO version (major) SELECT 1 WHERE NOT EXISTS (SELECT * FROM version);
