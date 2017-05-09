@@ -28,7 +28,8 @@
         nga.field('list', 'reference')
           .targetEntity(list)
           .targetField(nga.field('name'))
-          .label('List')
+          .label('List'),
+        nga.field('shelf')
       ]);
       product.creationView().fields(product.listView().fields());
       product.editionView().fields(product.listView().fields());

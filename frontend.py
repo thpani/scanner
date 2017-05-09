@@ -114,7 +114,7 @@ class ListList(Resource):
 
 class Product(Resource):
     def get(self, ean):
-        return query_db('SELECT ean, name, list FROM products WHERE ean = ?', (ean,), True)
+        return query_db('SELECT ean, name, list, shelf FROM products WHERE ean = ?', (ean,), True)
 
     def delete(self, ean):
         db = get_db()
@@ -126,10 +126,11 @@ class Product(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('name')
         parser.add_argument('list', type=int)
+        parser.add_argument('shelf')
         args = parser.parse_args()
         db = get_db()
         # TODO
-        db.execute('UPDATE products SET name=?, list=? WHERE ean=?', (args.name, args.list, ean))
+        db.execute('UPDATE products SET name=?, list=?, shelf=? WHERE ean=?', (args.name, args.list, args.shelf, ean))
         db.commit()
         return '', 201
 
@@ -140,16 +141,17 @@ class Product(Resource):
 
 class ProductList(Resource):
     def get(self):
-        return query_db('SELECT ean, name, list FROM products')
+        return query_db('SELECT ean, name, list, shelf FROM products ORDER BY list, shelf')
 
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('ean', type=int)
         parser.add_argument('name')
+        parser.add_argument('shelf')
         args = parser.parse_args()
         db = get_db()
         # TODO
-        db.execute('INSERT INTO products (ean, name) VALUES (?, ?)', (args.ean, args.name))
+        db.execute('INSERT INTO products (ean, name, shelf) VALUES (?, ?, ?)', (args.ean, args.name))
         db.commit()
         return '', 201
 
