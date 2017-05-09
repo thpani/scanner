@@ -49,7 +49,7 @@ class Wunderlist:
         def __init__(self, name, count, task):
             self.name, self.count, self.task = name, count, task
 
-    def add_task(self, ean, text, listid):
+    def add_task(self, ean, text, listid, shelf):
         r = requests.post(
             Wunderlist.api_url+'/tasks',
             headers=Wunderlist.headers,
@@ -61,7 +61,7 @@ class Wunderlist:
         r_comment = requests.post(
             Wunderlist.api_url+'/task_comments',
             headers=Wunderlist.headers,
-            json={ 'task_id': r.json()['id'], 'text': 'EAN: {}, Shelf: {}'.format(ean, '1,1') }
+            json={ 'task_id': r.json()['id'], 'text': 'EAN: {}, Shelf: {}'.format(ean, shelf) }
         )
 
         return r_comment.status_code == 201, r_comment.json()
@@ -95,11 +95,11 @@ class Wunderlist:
         
         return products
 
-    def add_product(self, product_name, listid):
+    def add_product(self, ean, product_name, listid, shelf):
         products = self.get_products(listid)
         plist = [ p for p in products if p.name == product_name ]  # tasks that contain `product`
         if not plist:
-            return self.add_task(ean, product_name, listid)
+            return self.add_task(ean, product_name, listid, shelf)
         else:
             p = plist[0]
             return self.modify_task(
@@ -165,7 +165,7 @@ class Reader(Thread):
 
 def lookup_db(conn, ean):
     c = conn.cursor()
-    c.execute('SELECT name, list FROM products WHERE ean=?', (ean,))
+    c.execute('SELECT name, list, shelf FROM products WHERE ean=?', (ean,))
     row = c.fetchone()
     return row
 
@@ -224,16 +224,16 @@ def main():
             if product_name is None:
                 print('Lookup ✘', 'Failed to lookup EAN', ean, file=sys.stderr)
                 m.send('Failed to lookup EAN', ean + '; Can you please edit it in my database?')
-                product_name, listid = '??? EAN: {}'.format(ean), WUNDERLIST_LIST_ID
+                product_name, listid, shelf = '??? EAN: {}'.format(ean), WUNDERLIST_LIST_ID, None
                 add_db(db, ean, product_name, listid)
             else:
                 print('Lookup ✔ (from codecheck.info)', product_name, file=sys.stderr)
                 add_db(db, ean, product_name, listid)
         else:
-            product_name, listid = product
+            product_name, listid, shelf = product
             print('Lookup ✔ (from DB)', product_name, file=sys.stderr)
 
-        task_created, json_response = w.add_product(ean, product_name, listid)
+        task_created, json_response = w.add_product(ean, product_name, listid, shelf)
         if task_created:
             print('Task add ✔', product_name, file=sys.stderr)
         else:
