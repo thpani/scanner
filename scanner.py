@@ -81,6 +81,7 @@ class Wunderlist:
             params={ 'list_id': listid }
         )
         if r.status_code != 200:
+            print('Get products (list {}) failed: {} {}'.format(listid, r.status_code, r.json()), file=sys.stderr)
             raise # TODO
 
         products = []
