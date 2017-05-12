@@ -251,7 +251,7 @@ def main():
     while True:
         ean = q.get()
 
-        if ean == '00000000':
+        if ean == '99900007':
             succ, json_response = w.sort_list(WUNDERLIST_LIST_ID)
             if succ:
                 print('List sort ✔', file=sys.stderr)
