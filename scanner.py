@@ -120,7 +120,7 @@ class Wunderlist:
             raise # TODO
 
         comments = [ comment for comment in r.json() if 'Shelf: ' in comment['text'] ]
-        comments = sorted(comments, key=lambda comment: re.search('Shelf: (.*)', comment['text']).group(1).split(','))
+        comments = sorted(comments, key=lambda comment: re.search('Shelf: (.*)', comment['text']).group(1))
         task_ids = [ comment['task_id'] for comment in comments ]
 
         r = requests.get(
