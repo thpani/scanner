@@ -18,7 +18,7 @@
       ]);
       list.creationView().fields(list.listView().fields());
       list.editionView().fields(list.listView().fields());
-      admin.addEntity(list);
+
       var product = nga.entity('products').identifier(nga.field('ean'));
       product.listView().fields([
         nga.field('ean')
@@ -34,6 +34,12 @@
       product.creationView().fields(product.listView().fields());
       product.editionView().fields(product.listView().fields());
       admin.addEntity(product);
+      admin.addEntity(list);
+
+      admin.dashboard(nga.dashboard()
+        .addCollection(nga.collection(product).fields(product.listView().fields()))
+      );
+
       nga.configure(admin);
     }]);
     </script>
