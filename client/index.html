@@ -7,10 +7,14 @@
   <body ng-app="myApp">
     <div ui-view="ng-admin"></div>
     <script src="node_modules/ng-admin/build/ng-admin.min.js"></script>
+    <script src="node_modules/angular-barcode/dist/angular-barcode.js"></script>
     <script type="text/javascript">
-    var myApp = angular.module('myApp', ['ng-admin']);
+    var myApp = angular.module('myApp', ['ng-admin', 'angular-barcode']);
+
     myApp.config(['NgAdminConfigurationProvider', function(nga) {
+      
       var admin = nga.application('Scanner Admin');
+
       var list = nga.entity('lists');
       list.listView().fields([
         nga.field('id').label('Wunderlist List ID'),
@@ -32,7 +36,12 @@
         nga.field('shelf')
       ]);
       product.creationView().fields(product.listView().fields());
-      product.editionView().fields(product.listView().fields());
+      product.editionView().fields(product.listView().fields(), [
+        nga.field('ean')
+        .label('Barcode')
+        .template('<angular-barcode ng-model="value"></angular-barcode>')
+      ]);
+
       admin.addEntity(product);
       admin.addEntity(list);
 
