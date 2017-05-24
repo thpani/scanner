@@ -16,6 +16,9 @@
       var admin = nga.application('Scanner Admin');
 
       var list = nga.entity('lists');
+      var tag = nga.entity('tags').label('Product group');
+      var product = nga.entity('products').identifier(nga.field('ean'));
+
       list.listView().fields([
         nga.field('id').label('Wunderlist List ID'),
         nga.field('name')
@@ -23,7 +26,13 @@
       list.creationView().fields(list.listView().fields());
       list.editionView().fields(list.listView().fields());
 
-      var product = nga.entity('products').identifier(nga.field('ean'));
+      tag.listView().fields([
+        nga.field('name').isDetailLink(true),
+        nga.field('ord', 'number').label('Order')
+      ]);
+      tag.creationView().fields(tag.listView().fields());
+      tag.editionView().fields(tag.listView().fields());
+
       product.listView().fields([
         nga.field('ean')
           .isDetailLink(true)
@@ -33,6 +42,10 @@
           .targetEntity(list)
           .targetField(nga.field('name'))
           .label('List'),
+        nga.field('tag', 'reference')
+          .targetEntity(tag)
+          .targetField(nga.field('name'))
+          .label('Product group'),
         nga.field('shelf')
       ]);
       product.creationView().fields(product.listView().fields());
@@ -44,6 +57,7 @@
 
       admin.addEntity(product);
       admin.addEntity(list);
+      admin.addEntity(tag);
 
       admin.dashboard(nga.dashboard()
         .addCollection(nga.collection(product).fields(product.listView().fields()))

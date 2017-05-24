@@ -74,6 +74,46 @@ def mkdir_p(path):
 ## REST resources
 ##
 
+class Tag(Resource):
+    def get(self, id):
+        return query_db('SELECT id, name, ord FROM tags WHERE id = ?', (id,), True)
+
+    def delete(self, id):
+        db = get_db()
+        db.execute('DELETE FROM tags WHERE id=?', (id,))
+        db.commit()
+        return '', 204
+
+    def put(self, id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('name')
+        parser.add_argument('ord')
+        args = parser.parse_args()
+        db = get_db()
+        db.execute('UPDATE tags SET name=?, ord=? WHERE id=?', (args.name, args.ord, id))
+        db.commit()
+        return '', 201
+
+    def options(self, id):
+        resp = Response()
+        resp.headers["Access-Control-Allow-Methods"] = "PUT,DELETE"
+        return resp
+
+class TagList(Resource):
+    def get(self):
+        return query_db('SELECT id, name, ord FROM tags ORDER BY ord')
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('id', type=int)
+        parser.add_argument('name')
+        parser.add_argument('ord')
+        args = parser.parse_args()
+        db = get_db()
+        db.execute('INSERT INTO tags (id, name, ord) VALUES (?, ?, ?)', (args.id, args.name, args.ord))
+        db.commit()
+        return '', 201
+
 class List(Resource):
     def get(self, id):
         return query_db('SELECT id, name FROM lists WHERE id = ?', (id,), True)
@@ -114,7 +154,7 @@ class ListList(Resource):
 
 class Product(Resource):
     def get(self, ean):
-        return query_db('SELECT ean, name, list, shelf FROM products WHERE ean = ?', (ean,), True)
+        return query_db('SELECT ean, name, list, tag, shelf FROM products WHERE ean = ?', (ean,), True)
 
     def delete(self, ean):
         db = get_db()
@@ -126,11 +166,11 @@ class Product(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('name')
         parser.add_argument('list', type=int)
+        parser.add_argument('tag', type=int)
         parser.add_argument('shelf')
         args = parser.parse_args()
         db = get_db()
-        # TODO
-        db.execute('UPDATE products SET name=?, list=?, shelf=? WHERE ean=?', (args.name, args.list, args.shelf, ean))
+        db.execute('UPDATE products SET name=?, list=?, tag=?, shelf=? WHERE ean=?', (args.name, args.list, args.tag, args.shelf, ean))
         db.commit()
         return '', 201
 
@@ -141,24 +181,27 @@ class Product(Resource):
 
 class ProductList(Resource):
     def get(self):
-        return query_db('SELECT ean, name, list, shelf FROM products ORDER BY list, shelf')
+        return query_db('SELECT ean, name, list, tag, shelf FROM products ORDER BY list, shelf')
 
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('ean', type=int)
         parser.add_argument('name')
+        parser.add_argument('list', type=int)
+        parser.add_argument('tag', type=int)
         parser.add_argument('shelf')
         args = parser.parse_args()
         db = get_db()
-        # TODO
-        db.execute('INSERT INTO products (ean, name, shelf) VALUES (?, ?, ?)', (args.ean, args.name))
+        db.execute('INSERT INTO products (ean, name, list, tag, shelf) VALUES (?, ?, ?, ?, ?)', (args.ean, args.name, args.list, args.tag, args.shelf))
         db.commit()
         return '', 201
 
+api.add_resource(TagList, '/tags')
+api.add_resource(Tag, '/tags/<int:id>')
 api.add_resource(ListList, '/lists')
-api.add_resource(List, '/lists/<id>')
+api.add_resource(List, '/lists/<int:id>')
 api.add_resource(ProductList, '/products')
-api.add_resource(Product, '/products/<ean>')
+api.add_resource(Product, '/products/<int:ean>')
 
 if __name__ == '__main__':
     init_db()
