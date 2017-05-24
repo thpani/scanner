@@ -103,7 +103,7 @@ class TagProductList(Resource):
     def get(self):
         tags = query_db('SELECT id, name, ord FROM tags ORDER BY ord')
         for tag in tags:
-            tag['products'] = query_db('SELECT ean, name FROM products WHERE tag = ?', (tag['id'],))
+            tag['products'] = query_db('SELECT ean, name FROM products WHERE tag = ? ORDER BY name', (tag['id'],))
         return tags
 
 class TagList(Resource):
