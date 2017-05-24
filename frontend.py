@@ -104,6 +104,9 @@ class TagProductList(Resource):
         tags = query_db('SELECT id, name, ord FROM tags ORDER BY ord')
         for tag in tags:
             tag['products'] = query_db('SELECT ean, name FROM products WHERE tag = ? ORDER BY name', (tag['id'],))
+        no_tag_products = query_db('SELECT ean, name FROM products WHERE tag = ? ORDER BY name', (None,))
+        if no_tag_products:
+            tags.append({"name": "???", "ord": 99999, "products": no_tag_products })
         return tags
 
 class TagList(Resource):
