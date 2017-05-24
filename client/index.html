@@ -11,8 +11,31 @@
     <script type="text/javascript">
     var myApp = angular.module('myApp', ['ng-admin', 'angular-barcode']);
 
-    myApp.config(['NgAdminConfigurationProvider', function(nga) {
-      
+
+    myApp.config(['$stateProvider', 'NgAdminConfigurationProvider', function($stateProvider, nga) {
+
+      $stateProvider.state('barcodes', {
+        parent: 'ng-admin',
+        url: '/barcodes',
+        controller: function ($scope, Restangular) {
+          $scope.bc = { "width" : 1, "height": 50 };
+          Restangular.all('tags').all('products').getList().then(function(tags) {
+            $scope.tags = [{"name": "Kommandos", "ord": Number.NEGATIVE_INFINITY, "products": [
+              { "name": "Liste ordnen", ean: '99900007' }
+            ]}].concat(tags);
+          });
+        },
+        template: '<div class="row"></div> \
+<div ng-repeat="tag in tags"> \
+  <h2>{{tag.name}}</h2> \
+  <div class="row"> \
+  <div class="col-sm-2" ng-repeat="product in tag.products" style="text-align: center"> \
+        {{product.name}}<br/> \
+  <angular-barcode ng-model="product.ean" bc-options="bc" bc-type="svg"></angular-barcode> \
+  </div></div> \
+</div>'
+      });
+
       var admin = nga.application('Scanner Admin');
 
       var list = nga.entity('lists');
@@ -52,7 +75,7 @@
       product.editionView().fields(product.listView().fields(), [
         nga.field('ean')
         .label('Barcode')
-        .template('<angular-barcode ng-model="value"></angular-barcode>')
+        .template('<angular-barcode ng-model="value" bc-type="svg"></angular-barcode>')
       ]);
 
       admin.addEntity(product);

@@ -99,6 +99,13 @@ class Tag(Resource):
         resp.headers["Access-Control-Allow-Methods"] = "PUT,DELETE"
         return resp
 
+class TagProductList(Resource):
+    def get(self):
+        tags = query_db('SELECT id, name, ord FROM tags ORDER BY ord')
+        for tag in tags:
+            tag['products'] = query_db('SELECT ean, name FROM products WHERE tag = ?', (tag['id'],))
+        return tags
+
 class TagList(Resource):
     def get(self):
         return query_db('SELECT id, name, ord FROM tags ORDER BY ord')
@@ -196,6 +203,7 @@ class ProductList(Resource):
         db.commit()
         return '', 201
 
+api.add_resource(TagProductList, '/tags/products')
 api.add_resource(TagList, '/tags')
 api.add_resource(Tag, '/tags/<int:id>')
 api.add_resource(ListList, '/lists')
