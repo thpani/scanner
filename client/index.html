@@ -82,6 +82,20 @@
       admin.addEntity(list);
       admin.addEntity(tag);
 
+      admin.menu(nga.menu()
+        .addChild(nga.menu(product).icon('<span class="glyphicon glyphicon-cutlery"></span>'))
+        .addChild(nga.menu(list).icon('<span class="glyphicon glyphicon-list"></span>'))
+        .addChild(nga.menu(tag).icon('<span class="glyphicon glyphicon-th-large"></span>'))
+        .addChild(nga.menu()
+          .title('Barcodes')
+          .link('/barcodes')
+          .active(function(path) {
+              return path.indexOf('/barcodes') === 0;
+          })
+          .icon('<span class="glyphicon glyphicon-barcode"></span>')
+        )
+      );
+
       admin.dashboard(nga.dashboard()
         .addCollection(nga.collection(product).fields(product.listView().fields()))
       );
