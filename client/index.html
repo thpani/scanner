@@ -12,8 +12,16 @@
     var myApp = angular.module('myApp', ['ng-admin', 'angular-barcode']);
 
 
-    myApp.config(['$stateProvider', 'NgAdminConfigurationProvider', function($stateProvider, nga) {
+    myApp.directive('productListActions', function() {
+      return {
+        restrict: 'E',
+        scope: { product: "=" },
+        template: '<a class="btn btn-default btn-xs" ng-href="http://www.codecheck.info/product.search?q={{product.values.ean}}" target="_blank"><span class="glyphicon glyphicon-search"></span>&nbsp;CodeCheck</a> \
+          <a class="btn btn-default btn-xs" ng-click=""><span class="glyphicon glyphicon-shopping-cart"></span>&nbsp;Buy this</a>'
+      };
+    });
 
+    myApp.config(['$stateProvider', 'NgAdminConfigurationProvider', function($stateProvider, nga) {
       $stateProvider.state('barcodes', {
         parent: 'ng-admin',
         url: '/barcodes',
@@ -71,7 +79,8 @@
           .targetField(nga.field('name'))
           .label('Product group'),
         nga.field('shelf')
-      ]);
+      ])
+        .listActions('<product-list-actions size="xs" product="entry"></product-list-actions>');
       product.creationView().fields(product.listView().fields());
       product.editionView().fields(product.listView().fields(), [
         nga.field('ean')
