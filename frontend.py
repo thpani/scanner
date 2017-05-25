@@ -195,7 +195,7 @@ class ProductList(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('ean', type=int)
+        parser.add_argument('ean')
         parser.add_argument('name')
         parser.add_argument('list', type=int)
         parser.add_argument('tag', type=int)
@@ -212,7 +212,7 @@ api.add_resource(Tag, '/tags/<int:id>')
 api.add_resource(ListList, '/lists')
 api.add_resource(List, '/lists/<int:id>')
 api.add_resource(ProductList, '/products')
-api.add_resource(Product, '/products/<int:ean>')
+api.add_resource(Product, '/products/:ean')
 
 if __name__ == '__main__':
     init_db()
