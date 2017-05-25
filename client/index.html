@@ -20,6 +20,7 @@
         controller: function ($scope, Restangular) {
           $scope.bc = { "width" : 1, "height": 50 };
           Restangular.all('tags').all('products').getList().then(function(tags) {
+            if (tags.data !== undefined) tags = tags.data; // TODO why does this happen?
             $scope.tags = [{"name": "Kommandos", "ord": Number.NEGATIVE_INFINITY, "products": [
               { "name": "Liste ordnen", ean: '99900007' }
             ]}].concat(tags);
