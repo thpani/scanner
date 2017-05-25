@@ -75,8 +75,8 @@
       product.creationView().fields(product.listView().fields());
       product.editionView().fields(product.listView().fields(), [
         nga.field('ean')
-        .label('Barcode')
-        .template('<angular-barcode ng-model="value" bc-type="svg"></angular-barcode>')
+          .label('Barcode')
+          .template('<angular-barcode ng-model="value" bc-type="svg"></angular-barcode>')
       ]);
 
       admin.addEntity(product);
