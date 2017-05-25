@@ -212,7 +212,7 @@ api.add_resource(Tag, '/tags/<int:id>')
 api.add_resource(ListList, '/lists')
 api.add_resource(List, '/lists/<int:id>')
 api.add_resource(ProductList, '/products')
-api.add_resource(Product, '/products/:ean')
+api.add_resource(Product, '/products/<ean>')
 
 if __name__ == '__main__':
     init_db()
