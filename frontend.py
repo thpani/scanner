@@ -8,7 +8,7 @@ import sqlite3
 from flask import request, g, Flask, Response
 from flask_restful import Resource, Api, reqparse
 
-from wunderlist import Wunderlist
+from wunderlist import Wunderlist as WunderlistApi
 
 ### CONFIGURATION ###
 
@@ -119,7 +119,7 @@ class Wunderlist(Resource):
         parser.add_argument('shelf')
         args = parser.parse_args()
 
-        w = Wunderlist(WUNDERLIST_ACCESS_TOKEN)
+        w = WunderlistApi(WUNDERLIST_ACCESS_TOKEN)
 
         task_created, json_response = w.add_product(ean, product_name, listid, shelf)
         if task_created:
