@@ -3,7 +3,6 @@
 import errno
 import os
 import sqlite3
-import sys
 
 from flask import request, g, Flask, Response
 from flask_restful import Resource, Api, reqparse
@@ -11,7 +10,6 @@ from flask_restful import Resource, Api, reqparse
 DATABASE = '/var/db/scanner/scanner.db'
 
 app = Flask(__name__, static_folder='client', static_url_path='')
-api = Api(app)
 
 # DB helpers
 # http://flask.pocoo.org/docs/0.12/patterns/sqlite3/
@@ -206,15 +204,24 @@ class ProductList(Resource):
         db.commit()
         return '', 201
 
-api.add_resource(TagProductList, '/tags/products')
-api.add_resource(TagList, '/tags')
-api.add_resource(Tag, '/tags/<int:id>')
-api.add_resource(ListList, '/lists')
-api.add_resource(List, '/lists/<int:id>')
-api.add_resource(ProductList, '/products')
-api.add_resource(Product, '/products/<ean>')
+def main(debug=False):
+    # setup db
+    init_db()
+
+    # setup flask app
+    api = Api(app)
+    api.add_resource(TagProductList, '/tags/products')
+    api.add_resource(TagList, '/tags')
+    api.add_resource(Tag, '/tags/<int:id>')
+    api.add_resource(ListList, '/lists')
+    api.add_resource(List, '/lists/<int:id>')
+    api.add_resource(ProductList, '/products')
+    api.add_resource(Product, '/products/<ean>')
+
+    # run
+    app.run(host='0.0.0.0', debug=debug)
 
 if __name__ == '__main__':
-    init_db()
+    import sys
     debug = len(sys.argv) > 1 and sys.argv[1] == '--debug'
-    app.run(host='0.0.0.0', debug=debug)
+    main(debug)
