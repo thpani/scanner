@@ -18,6 +18,7 @@ with open('/etc/scanner.json') as f:
         'X-Access-Token': j['wunderlist']['access_token'],
         'X-Client-ID': j['wunderlist']['clientid']
     }
+    WUNDERLIST_LIST_ID = j['wunderlist']['default_list']
 DATABASE = '/var/db/scanner/scanner.db'
 
 ###
@@ -121,7 +122,10 @@ class Wunderlist(Resource):
 
         w = WunderlistApi(WUNDERLIST_ACCESS_TOKEN)
 
-        task_created, json_response = w.add_product(ean, product_name, listid, shelf)
+        if args.list is None:
+            args.list = WUNDERLIST_LIST_ID
+
+        task_created, json_response = w.add_product(args.ean, args.name, args.list, args.shelf)
         if task_created:
             return '', 201
         else:
