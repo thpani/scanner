@@ -12,12 +12,28 @@
     var myApp = angular.module('myApp', ['ng-admin', 'angular-barcode']);
 
 
-    myApp.directive('productListActions', function() {
+    myApp.directive('productListActions', function(Restangular, notification) {
       return {
         restrict: 'E',
-        scope: { product: "=" },
+        scope: { entry: "=" },
+        link: function(scope) {
+          scope.addToCart = function() {
+            var product = scope.entry.values;
+            console.log(product.ean, product.name, product.list, product.shelf);
+            Restangular.all('wunderlist').post({
+              ean: product.ean,
+              name: product.name,
+              list: product.list,
+              shelf: product.shelf
+            }).then(function() {
+              notification.log("Added \""+product.name+"\" to shopping list.", { addnCls: 'humane-flatty-success' });
+            }, function(response) {
+              notification.log("Error with status code:" + response.status, { addnCls: 'humane-flatty-error' });
+            });
+          }
+        },
         template: '<a class="btn btn-default btn-xs" ng-href="http://www.codecheck.info/product.search?q={{product.values.ean}}" target="_blank"><span class="glyphicon glyphicon-search"></span>&nbsp;CodeCheck</a> \
-          <a class="btn btn-default btn-xs" ng-click=""><span class="glyphicon glyphicon-shopping-cart"></span>&nbsp;Buy this</a>'
+          <a class="btn btn-default btn-xs" ng-click="addToCart()"><span class="glyphicon glyphicon-shopping-cart"></span>&nbsp;Buy this</a>'
       };
     });
 
@@ -80,7 +96,7 @@
           .label('Product group'),
         nga.field('shelf')
       ])
-        .listActions('<product-list-actions size="xs" product="entry"></product-list-actions>');
+        .listActions('<product-list-actions size="xs" entry="entry"></product-list-actions>');
       product.creationView().fields(product.listView().fields());
       product.editionView().fields(product.listView().fields(), [
         nga.field('ean')
