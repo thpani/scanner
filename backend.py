@@ -273,6 +273,7 @@ def main():
             else:
                 print('Lookup ✔ (from codecheck.info)', product_name, file=sys.stderr)
                 add_db(db, ean, product_name, listid)
+                shelf = None
         else:
             product_name, listid, shelf = product
             print('Lookup ✔ (from DB)', product_name, file=sys.stderr)
