@@ -13,6 +13,8 @@ import requests
 from bs4 import BeautifulSoup
 from pushbullet import Pushbullet
 
+from wunderlist import Wunderlist
+
 ### CONFIGURATION ###
 
 with open('/etc/scanner.json') as f:
@@ -40,107 +42,6 @@ class Messenger:
         for chat in self.chats:
             push = chat.push_note(title, body)
             ts = push['modified']
-
-class Wunderlist:
-    headers = WUNDERLIST_ACCESS_TOKEN
-    api_url = 'https://a.wunderlist.com/api/v1'
-
-    class Product:
-        def __init__(self, name, count, task):
-            self.name, self.count, self.task = name, count, task
-
-    def add_task(self, ean, text, listid, shelf):
-        r = requests.post(
-            Wunderlist.api_url+'/tasks',
-            headers=Wunderlist.headers,
-            json={ 'list_id': listid, 'title': text }
-        )
-        if r.status_code != 201:
-            return r.status_code == 201, r.json()
-
-        r_comment = requests.post(
-            Wunderlist.api_url+'/task_comments',
-            headers=Wunderlist.headers,
-            json={ 'task_id': r.json()['id'], 'text': 'EAN: {}, Shelf: {}'.format(ean, shelf) }
-        )
-
-        return r_comment.status_code == 201, r_comment.json()
-
-    def modify_task(self, id, text, revision):
-        r = requests.patch(
-            Wunderlist.api_url+'/tasks/{}'.format(id),
-            headers=Wunderlist.headers,
-            json={ 'revision': revision, 'title': text }
-        )
-        return r.status_code == 200, r.json()
-    
-    def get_products(self, listid):
-        r = requests.get(
-            Wunderlist.api_url+'/tasks',
-            headers=Wunderlist.headers,
-            params={ 'list_id': listid }
-        )
-        if r.status_code != 200:
-            print('Get products (list {}) failed: {} {}'.format(listid, r.status_code, r.json()), file=sys.stderr)
-            raise # TODO
-
-        products = []
-        for task in r.json():
-            match = re.match('((\d+)x )?(.*)', task['title'])
-
-            name = match.group(3)
-            count = int(match.group(2)) if match.group(2) else 1
-
-            product = Wunderlist.Product(name, count, task)
-            products.append(product)
-        
-        return products
-
-    def add_product(self, ean, product_name, listid, shelf):
-        products = self.get_products(listid)
-        plist = [ p for p in products if p.name == product_name ]  # tasks that contain `product`
-        if not plist:
-            return self.add_task(ean, product_name, listid, shelf)
-        else:
-            p = plist[0]
-            return self.modify_task(
-                p.task['id'],
-                '{}x {}'.format(p.count+1, product_name),
-                p.task['revision']
-            )
-    
-    def sort_list(self, listid):
-        r = requests.get(
-            Wunderlist.api_url+'/task_comments',
-            headers=Wunderlist.headers,
-            params={ 'list_id': listid }
-        )
-        if r.status_code != 200:
-            print('Get list comments (list {}) failed: {} {}'.format(listid, r.status_code, r.json()), file=sys.stderr)
-            raise # TODO
-
-        comments = [ comment for comment in r.json() if 'Shelf: ' in comment['text'] ]
-        comments = sorted(comments, key=lambda comment: re.search('Shelf: (.*)', comment['text']).group(1))
-        task_ids = [ comment['task_id'] for comment in comments ]
-
-        r = requests.get(
-            Wunderlist.api_url+'/task_positions',
-            headers=Wunderlist.headers,
-            params={ 'list_id': listid }
-        )
-        if r.status_code != 200:
-            print('Get list positions (list {}) failed: {} {}'.format(listid, r.status_code, r.json()), file=sys.stderr)
-            raise # TODO
-
-        assert(len(r.json()) == 1)
-        revision = r.json()[0]['revision']
-
-        r = requests.patch(
-            Wunderlist.api_url+'/task_positions/{}'.format(listid),
-            headers=Wunderlist.headers,
-            json={ 'revision': revision, 'values': task_ids }
-        )
-        return r.status_code == 200, r.json()
 
 def lookup_ean(ean):
     r = requests.get('http://www.codecheck.info/product.search', params={'q':ean, 'OK': 'Suchen'})
@@ -238,7 +139,7 @@ def main():
     print("Starting up...", file=sys.stderr)
 
     m = Messenger()
-    w = Wunderlist()
+    w = Wunderlist(WUNDERLIST_ACCESS_TOKEN)
 
     q = Queue()
     r = Reader(q)
