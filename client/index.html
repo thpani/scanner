@@ -11,6 +11,24 @@
     <script type="text/javascript">
     var myApp = angular.module('myApp', ['ng-admin', 'angular-barcode']);
 
+    myApp.directive('setTag', function() {
+      return {
+        restrict: 'E',
+        scope: { selection: '&' },
+        link: function(scope) {
+          scope.batchSetTag = function() {
+            var ids = scope.selection().forEach(function(entry) {
+              var r = entry.values.oneUrl(entry._identifierValue);
+              r.get().then(function(data) {
+                data.data.shelf = "minimi";
+                data.data.save();
+              });
+            });
+          }
+        },
+        template: '<span ng-click="batchSetTag()"><span class="glyphicon glyphicon-tag"></span>&nbsp;Set tag</span>'
+      };
+    });
 
     myApp.directive('productListActions', function(Restangular, notification) {
       return {
@@ -96,6 +114,9 @@
           .label('Product group'),
         nga.field('shelf')
       ])
+        .batchActions(['delete',
+          '<set-tag selection="selection"></set-tag>',
+          '<set-list selection="selection"></set-list>'])
         .listActions('<product-list-actions size="xs" entry="entry"></product-list-actions>');
       product.creationView().fields(product.listView().fields());
       product.editionView().fields(product.listView().fields(), [
