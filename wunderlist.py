@@ -2,6 +2,11 @@ import re
 
 import requests
 
+class RequestFailedException(Exception):
+    def __init__(self, message, json):
+        self.message = message
+        self.json = json
+
 class Wunderlist:
     api_url = 'https://a.wunderlist.com/api/v1'
 
@@ -44,8 +49,7 @@ class Wunderlist:
             params={ 'list_id': listid }
         )
         if r.status_code != 200:
-            print('Get products (list {}) failed: {} {}'.format(listid, r.status_code, r.json()), file=sys.stderr)
-            raise # TODO
+            raise RequestFailedException('GET products (list {}) failed: {}'.format(listid, r.status_code), r.json())
 
         products = []
         for task in r.json():
@@ -79,8 +83,7 @@ class Wunderlist:
             params={ 'list_id': listid }
         )
         if r.status_code != 200:
-            print('Get list comments (list {}) failed: {} {}'.format(listid, r.status_code, r.json()), file=sys.stderr)
-            raise # TODO
+            raise RequestFailedException('GET list comments (list {}) failed: {}'.format(listid, r.status_code), r.json())
 
         comments = [ comment for comment in r.json() if 'Shelf: ' in comment['text'] ]
         comments = sorted(comments, key=lambda comment: re.search('Shelf: (.*)', comment['text']).group(1))
@@ -92,8 +95,7 @@ class Wunderlist:
             params={ 'list_id': listid }
         )
         if r.status_code != 200:
-            print('Get list positions (list {}) failed: {} {}'.format(listid, r.status_code, r.json()), file=sys.stderr)
-            raise # TODO
+            raise RequestFailedException('GET list positions (list {}) failed: {} {}'.format(listid, r.status_code), r.json())
 
         assert(len(r.json()) == 1)
         revision = r.json()[0]['revision']
