@@ -1,13 +1,26 @@
 #!/usr/bin/env python3
 
 import errno
+import json
 import os
 import sqlite3
 
 from flask import request, g, Flask, Response
 from flask_restful import Resource, Api, reqparse
 
+from wunderlist import Wunderlist
+
+### CONFIGURATION ###
+
+with open('/etc/scanner.json') as f:
+    j = json.load(f)
+    WUNDERLIST_ACCESS_TOKEN = {
+        'X-Access-Token': j['wunderlist']['access_token'],
+        'X-Client-ID': j['wunderlist']['clientid']
+    }
 DATABASE = '/var/db/scanner/scanner.db'
+
+###
 
 app = Flask(__name__, static_folder='client', static_url_path='')
 
@@ -96,6 +109,23 @@ class Tag(Resource):
         resp = Response()
         resp.headers["Access-Control-Allow-Methods"] = "PUT,DELETE"
         return resp
+
+class Wunderlist(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('ean')
+        parser.add_argument('name')
+        parser.add_argument('list', type=int)
+        parser.add_argument('shelf')
+        args = parser.parse_args()
+
+        w = Wunderlist(WUNDERLIST_ACCESS_TOKEN)
+
+        task_created, json_response = w.add_product(ean, product_name, listid, shelf)
+        if task_created:
+            return '', 201
+        else:
+            return json.dumps(json_response), 500
 
 class TagProductList(Resource):
     def get(self):
@@ -211,6 +241,7 @@ def main(debug=False):
     # setup flask app
     api = Api(app)
     api.add_resource(TagProductList, '/tags/products')
+    api.add_resource(Wunderlist, '/wunderlist')
     api.add_resource(TagList, '/tags')
     api.add_resource(Tag, '/tags/<int:id>')
     api.add_resource(ListList, '/lists')
