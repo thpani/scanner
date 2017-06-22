@@ -131,6 +131,17 @@ class Wunderlist(Resource):
         else:
             return json.dumps(json_response), 500
 
+class WunderlistSort(Resource):
+    def post(self):
+        w = WunderlistApi(WUNDERLIST_ACCESS_TOKEN)
+
+        sorted, json_response = w.sort_list(WUNDERLIST_LIST_ID)
+
+        if sorted:
+            return '', 201
+        else:
+            return json.dumps(json_response), 500
+
 class TagProductList(Resource):
     def get(self):
         tags = query_db('SELECT id, name, ord FROM tags ORDER BY ord')
@@ -246,6 +257,7 @@ def main(debug=False):
     api = Api(app)
     api.add_resource(TagProductList, '/tags/products')
     api.add_resource(Wunderlist, '/wunderlist')
+    api.add_resource(WunderlistSort, '/wunderlist/sort')
     api.add_resource(TagList, '/tags')
     api.add_resource(Tag, '/tags/<int:id>')
     api.add_resource(ListList, '/lists')

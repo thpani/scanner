@@ -89,6 +89,9 @@ class Wunderlist:
         comments = sorted(comments, key=lambda comment: re.search('Shelf: (.*)', comment['text']).group(1))
         task_ids = [ comment['task_id'] for comment in comments ]
 
+        if not task_ids:
+            return True, {}
+
         r = requests.get(
             Wunderlist.api_url+'/task_positions',
             headers=self.headers,

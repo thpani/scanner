@@ -11,6 +11,21 @@
     <script type="text/javascript">
     var myApp = angular.module('myApp', ['ng-admin', 'angular-barcode']);
 
+    myApp.directive('sortList', function(Restangular, notification) {
+      return {
+        restrict: 'E',
+        link: function(scope) {
+          scope.sortList = function() {
+            Restangular.all('wunderlist').all('sort').post().then(function() {
+              notification.log("Sorted list.", { addnCls: 'humane-flatty-success' });
+            }, function(response) {
+              notification.log("Sorting list failed with status code:" + response.status, { addnCls: 'humane-flatty-error' });
+            });
+          }
+        },
+        template: '<a class="btn btn-default" ng-click="sortList()">Sort list</a>'
+      };
+    });
 
     myApp.directive('productListActions', function(Restangular, notification) {
       return {
@@ -95,7 +110,8 @@
           .label('Product group'),
         nga.field('shelf')
       ])
-        .listActions('<product-list-actions size="xs" entry="entry"></product-list-actions>');
+        .actions(['batch', 'export', 'create', '<sort-list></sort-list>'])
+        .listActions('<product-list-actions entry="entry"></product-list-actions>');
       product.creationView().fields(product.listView().fields());
       product.editionView().fields(product.listView().fields(), [
         nga.field('ean')
@@ -108,7 +124,7 @@
       admin.addEntity(tag);
 
       admin.menu(nga.menu()
-        .addChild(nga.menu(product).icon('<span class="glyphicon glyphicon-shopping-cart"></span>'))
+        .addChild(nga.menu(product).icon('<span class="glyphicon glyphicon-tag"></span>'))
         .addChild(nga.menu(list).icon('<span class="glyphicon glyphicon-list"></span>'))
         .addChild(nga.menu(tag).icon('<span class="glyphicon glyphicon-th-large"></span>'))
         .addChild(nga.menu()
