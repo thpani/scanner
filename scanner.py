@@ -82,18 +82,27 @@ class Reader(Thread):
 
         while True:
             if USE_EVENT_DEV:
-                for event in dev.read_loop():
-                    if event.type == evdev.ecodes.EV_KEY:
-                        x = evdev.categorize(event)
-                        if x.keystate == 0:
-                            char = x.keycode[4:]
-                            if char == 'ENTER':
-                                r = ''.join(list)
-                                print('input={}'.format(r))
-                                self.queue.put(r)
-                                list = []
-                            else:
-                                list.append(char)
+                try:
+                    for event in dev.read_loop():
+                        if event.type == evdev.ecodes.EV_KEY:
+                            x = evdev.categorize(event)
+                            if x.keystate == 0:
+                                char = x.keycode[4:]
+                                if char == 'ENTER':
+                                    r = ''.join(list)
+                                    print('input={}'.format(r))
+                                    self.queue.put(r)
+                                    list = []
+                                else:
+                                    list.append(char)
+                except OSError as exc:
+                    if exc.errno == 19:
+                        print("[Errno 19] No such device", file=sys.stderr)
+                        import time
+                        time.sleep(60) # 1 min
+                    else:
+                        raise exc
+
             else:
                 r = input()
                 self.queue.put(r)
