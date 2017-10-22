@@ -143,8 +143,7 @@
           .fields(product.listView().fields())
           .listActions('<product-list-actions entry="entry"></product-list-actions>')
         )
-        .template('<div class="row"><div class="col-lg-12"><div class="page-header"><h1>Dashboard</h1></div></div></div>
-          <div class="row dashboard-content"><div class="col-lg-12"><div class="panel panel-default" ng-repeat="collection in dashboardController.collections | orderElement"> <ma-dashboard-panel collection="collection" entries="dashboardController.entries[collection.name()]" datastore="dashboardController.datastore"></ma-dashboard-panel> </div></div></div>')
+        .template('<div class="row"><div class="col-lg-12"><div class="page-header"><h1>Dashboard</h1></div></div></div> <div class="row dashboard-content"><div class="col-lg-12"><div class="panel panel-default" ng-repeat="collection in dashboardController.collections | orderElement"> <ma-dashboard-panel collection="collection" entries="dashboardController.entries[collection.name()]" datastore="dashboardController.datastore"></ma-dashboard-panel> </div></div></div>')
       );
 
       nga.configure(admin);
