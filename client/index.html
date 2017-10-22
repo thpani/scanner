@@ -138,7 +138,10 @@
       );
 
       admin.dashboard(nga.dashboard()
-        .addCollection(nga.collection(product).fields(product.listView().fields()))
+        .addCollection(nga.collection(product)
+          .fields(product.listView().fields())
+          .actions(product.listView().actions())
+        )
       );
 
       nga.configure(admin);
