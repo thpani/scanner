@@ -95,21 +95,22 @@
       tag.creationView().fields(tag.listView().fields());
       tag.editionView().fields(tag.listView().fields());
 
-      product.listView().fields([
-        nga.field('ean')
-          .isDetailLink(true)
-          .label('EAN'),
-        nga.field('name'),
-        nga.field('list', 'reference')
-          .targetEntity(list)
-          .targetField(nga.field('name'))
-          .label('List'),
-        nga.field('tag', 'reference')
-          .targetEntity(tag)
-          .targetField(nga.field('name'))
-          .label('Product group'),
-        nga.field('shelf')
-      ])
+      product.listView()
+        .fields([
+          nga.field('ean')
+            .isDetailLink(true)
+            .label('EAN'),
+          nga.field('name'),
+          nga.field('list', 'reference')
+            .targetEntity(list)
+            .targetField(nga.field('name'))
+            .label('List'),
+          nga.field('tag', 'reference')
+            .targetEntity(tag)
+            .targetField(nga.field('name'))
+            .label('Product group'),
+          nga.field('shelf')
+        ])
         .actions(['batch', 'export', 'create', '<sort-list></sort-list>'])
         .listActions('<product-list-actions entry="entry"></product-list-actions>');
       product.creationView().fields(product.listView().fields());
@@ -140,7 +141,7 @@
       admin.dashboard(nga.dashboard()
         .addCollection(nga.collection(product)
           .fields(product.listView().fields())
-          .actions(product.listView().actions())
+          .listActions('<product-list-actions entry="entry"></product-list-actions>')
         )
       );
 
