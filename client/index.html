@@ -63,7 +63,7 @@
 
     myApp.directive('setTag', function() {
       var directive = getBatchEditDirective();
-      directive['template'] = '<span ng-click="batchSetField(\'tag\', true)"><span class="glyphicon glyphicon-tag"></span>&nbsp;Set product group</span>';
+      directive['template'] = '<span ng-click="batchSetField(\'tag\', true)"><span class="glyphicon glyphicon-th-large"></span>&nbsp;Set product group</span>';
       return directive;
     });
 
@@ -169,9 +169,10 @@
         )
         .actions(['batch', 'export', 'create', '<sort-list></sort-list>'])
         .batchActions(['delete',
+          '<set-list selection="selection"></set-list>',
           '<set-tag selection="selection"></set-tag>',
-          '<set-shelf selection="selection"></set-shelf>',
-          '<set-list selection="selection"></set-list>'])
+          '<set-shelf selection="selection"></set-shelf>'
+        ])
         .listActions('<product-list-actions entry="entry"></product-list-actions>');
       product.creationView().fields(product.listView().fields());
       product.editionView().fields(productBaseFields.concat([
