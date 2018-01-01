@@ -11,6 +11,17 @@
     <script type="text/javascript">
     var myApp = angular.module('myApp', ['ng-admin', 'angular-barcode']);
 
+    myApp.config(['RestangularProvider', function(RestangularProvider) {
+        RestangularProvider.addFullRequestInterceptor(function(element, operation, what, url, headers, params, httpConfig) {
+          console.log(operation, what);
+            if (operation == 'getList' && what == 'products' && params._sortField == 'id') {
+                params._sortField = 'list,shelf';
+                params._sortDir = 'ASC';
+            }
+            return { params: params };
+        });
+    }]);
+
     myApp.directive('sortList', function(Restangular, notification) {
       return {
         restrict: 'E',

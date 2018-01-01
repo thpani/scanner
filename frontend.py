@@ -236,7 +236,15 @@ class Product(Resource):
 
 class ProductList(Resource):
     def get(self):
-        return query_db('SELECT ean, name, list, tag, shelf FROM products ORDER BY list, shelf')
+        parser = reqparse.RequestParser()
+        parser.add_argument('_sortField')
+        parser.add_argument('_sortDir')
+        args = parser.parse_args()
+        if args._sortField not in ('ean', 'name', 'list', 'tag', 'shelf', 'list,shelf'):
+            return 'invalid sort field', 400
+        if args._sortDir not in ('ASC', 'DESC'):
+            return 'invalid sort direction', 400
+        return query_db('SELECT ean, name, list, tag, shelf FROM products ORDER BY ' + args._sortField + ' ' + args._sortDir)
 
     def post(self):
         parser = reqparse.RequestParser()
