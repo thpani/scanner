@@ -88,6 +88,50 @@ def mkdir_p(path):
 ## REST resources
 ##
 
+# endpoint for adding items to wunderlist
+class Wunderlist(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('ean')
+        parser.add_argument('name')
+        parser.add_argument('list', type=int)
+        parser.add_argument('shelf')
+        args = parser.parse_args()
+
+        w = WunderlistApi(WUNDERLIST_ACCESS_TOKEN)
+
+        if args.list is None:
+            args.list = WUNDERLIST_LIST_ID
+
+        task_created, json_response = w.add_product(args.ean, args.name, args.list, args.shelf)
+        if task_created:
+            return '', 201
+        else:
+            return json.dumps(json_response), 500
+
+# endpoint for sorting wunderlist
+class WunderlistSort(Resource):
+    def post(self):
+        w = WunderlistApi(WUNDERLIST_ACCESS_TOKEN)
+
+        sorted, json_response = w.sort_list(WUNDERLIST_LIST_ID)
+
+        if sorted:
+            return '', 201
+        else:
+            return json.dumps(json_response), 500
+
+# endpoint for fetching products for tag
+class TagProductList(Resource):
+    def get(self):
+        tags = query_db('SELECT id, name, ord FROM tags ORDER BY ord')
+        for tag in tags:
+            tag['products'] = query_db('SELECT ean, name FROM products WHERE tag = ? ORDER BY name', (tag['id'],))
+        no_tag_products = query_db('SELECT ean, name FROM products WHERE tag = ? ORDER BY name', (None,))
+        if no_tag_products:
+            tags.append({"name": "???", "ord": 99999, "products": no_tag_products })
+        return tags
+
 class Tag(Resource):
     def get(self, id):
         return query_db('SELECT id, name, ord FROM tags WHERE id = ?', (id,), True)
@@ -112,47 +156,6 @@ class Tag(Resource):
         resp = Response()
         resp.headers["Access-Control-Allow-Methods"] = "PUT,DELETE"
         return resp
-
-class Wunderlist(Resource):
-    def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('ean')
-        parser.add_argument('name')
-        parser.add_argument('list', type=int)
-        parser.add_argument('shelf')
-        args = parser.parse_args()
-
-        w = WunderlistApi(WUNDERLIST_ACCESS_TOKEN)
-
-        if args.list is None:
-            args.list = WUNDERLIST_LIST_ID
-
-        task_created, json_response = w.add_product(args.ean, args.name, args.list, args.shelf)
-        if task_created:
-            return '', 201
-        else:
-            return json.dumps(json_response), 500
-
-class WunderlistSort(Resource):
-    def post(self):
-        w = WunderlistApi(WUNDERLIST_ACCESS_TOKEN)
-
-        sorted, json_response = w.sort_list(WUNDERLIST_LIST_ID)
-
-        if sorted:
-            return '', 201
-        else:
-            return json.dumps(json_response), 500
-
-class TagProductList(Resource):
-    def get(self):
-        tags = query_db('SELECT id, name, ord FROM tags ORDER BY ord')
-        for tag in tags:
-            tag['products'] = query_db('SELECT ean, name FROM products WHERE tag = ? ORDER BY name', (tag['id'],))
-        no_tag_products = query_db('SELECT ean, name FROM products WHERE tag = ? ORDER BY name', (None,))
-        if no_tag_products:
-            tags.append({"name": "???", "ord": 99999, "products": no_tag_products })
-        return tags
 
 class TagList(Resource):
     def get(self):
@@ -265,9 +268,9 @@ def main(debug=False):
 
     # setup flask app
     api = Api(app)
-    api.add_resource(TagProductList, '/tags/products')
     api.add_resource(Wunderlist, '/wunderlist')
     api.add_resource(WunderlistSort, '/wunderlist/sort')
+    api.add_resource(TagProductList, '/tags/products')
     api.add_resource(TagList, '/tags')
     api.add_resource(Tag, '/tags/<int:id>')
     api.add_resource(ListList, '/lists')
