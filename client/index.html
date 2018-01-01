@@ -35,7 +35,48 @@
           }
         },
         template: '<a class="btn btn-default" ng-click="sortList()">Sort list</a>'
-      };
+      }
+    });
+
+    var getBatchEditDirective = function() { return {
+      restrict: 'E',
+      scope: { selection: '&' },
+      link: function(scope) {
+        scope.batchSetField = function(field, convert) {
+          var newValue = window.prompt("Please enter the updated value:");
+          if (convert) {
+            newValue = parseInt(newValue);
+          }
+          if (newValue === null || newValue === NaN) {
+            return;
+          }
+          var ids = scope.selection().forEach(function(entry) {
+            var r = entry.values.oneUrl(entry._identifierValue);
+            r.get().then(function(data) {
+              data.data[field] = newValue;
+              data.data.save();
+            });
+          });
+        }
+      }
+    }};
+
+    myApp.directive('setTag', function() {
+      var directive = getBatchEditDirective();
+      directive['template'] = '<span ng-click="batchSetField(\'tag\', true)"><span class="glyphicon glyphicon-tag"></span>&nbsp;Set product group</span>';
+      return directive;
+    });
+
+    myApp.directive('setList', function() {
+      var directive = getBatchEditDirective();
+      directive['template'] = '<span ng-click="batchSetField(\'list\', true)"><span class="glyphicon glyphicon-list"></span>&nbsp;Set list</span>';
+      return directive;
+    });
+
+    myApp.directive('setShelf', function() {
+      var directive = getBatchEditDirective();
+      directive['template'] = '<span ng-click="batchSetField(\'shelf\', false)"><span class="glyphicon glyphicon-menu-hamburger"></span>&nbsp;Set shelf</span>';
+      return directive;
     });
 
     myApp.directive('productListActions', function(Restangular, notification) {
@@ -127,6 +168,10 @@
           ].concat(productBaseFields)
         )
         .actions(['batch', 'export', 'create', '<sort-list></sort-list>'])
+        .batchActions(['delete',
+          '<set-tag selection="selection"></set-tag>',
+          '<set-shelf selection="selection"></set-shelf>',
+          '<set-list selection="selection"></set-list>'])
         .listActions('<product-list-actions entry="entry"></product-list-actions>');
       product.creationView().fields(product.listView().fields());
       product.editionView().fields(productBaseFields.concat([
