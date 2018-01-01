@@ -11,23 +11,72 @@
     <script type="text/javascript">
     var myApp = angular.module('myApp', ['ng-admin', 'angular-barcode']);
 
-    myApp.directive('setTag', function() {
+    myApp.config(['RestangularProvider', function(RestangularProvider) {
+        RestangularProvider.addFullRequestInterceptor(function(element, operation, what, url, headers, params, httpConfig) {
+          console.log(operation, what);
+            if (operation == 'getList' && what == 'products' && params._sortField == 'id') {
+                params._sortField = 'list,shelf';
+                params._sortDir = 'ASC';
+            }
+            return { params: params };
+        });
+    }]);
+
+    myApp.directive('sortList', function(Restangular, notification) {
       return {
         restrict: 'E',
-        scope: { selection: '&' },
         link: function(scope) {
-          scope.batchSetTag = function() {
-            var ids = scope.selection().forEach(function(entry) {
-              var r = entry.values.oneUrl(entry._identifierValue);
-              r.get().then(function(data) {
-                data.data.shelf = "minimi";
-                data.data.save();
-              });
+          scope.sortList = function() {
+            Restangular.all('wunderlist').all('sort').post().then(function() {
+              notification.log("Sorted list.", { addnCls: 'humane-flatty-success' });
+            }, function(response) {
+              notification.log("Sorting list failed with status code:" + response.status, { addnCls: 'humane-flatty-error' });
             });
           }
         },
-        template: '<span ng-click="batchSetTag()"><span class="glyphicon glyphicon-tag"></span>&nbsp;Set tag</span>'
-      };
+        template: '<a class="btn btn-default" ng-click="sortList()">Sort list</a>'
+      }
+    });
+
+    var getBatchEditDirective = function() { return {
+      restrict: 'E',
+      scope: { selection: '&' },
+      link: function(scope) {
+        scope.batchSetField = function(field, convert) {
+          var newValue = window.prompt("Please enter the updated value:");
+          if (convert) {
+            newValue = parseInt(newValue);
+          }
+          if (newValue === null || newValue === NaN) {
+            return;
+          }
+          var ids = scope.selection().forEach(function(entry) {
+            var r = entry.values.oneUrl(entry._identifierValue);
+            r.get().then(function(data) {
+              data.data[field] = newValue;
+              data.data.save();
+            });
+          });
+        }
+      }
+    }};
+
+    myApp.directive('setTag', function() {
+      var directive = getBatchEditDirective();
+      directive['template'] = '<span ng-click="batchSetField(\'tag\', true)"><span class="glyphicon glyphicon-tag"></span>&nbsp;Set product group</span>';
+      return directive;
+    });
+
+    myApp.directive('setList', function() {
+      var directive = getBatchEditDirective();
+      directive['template'] = '<span ng-click="batchSetField(\'list\', true)"><span class="glyphicon glyphicon-list"></span>&nbsp;Set list</span>';
+      return directive;
+    });
+
+    myApp.directive('setShelf', function() {
+      var directive = getBatchEditDirective();
+      directive['template'] = '<span ng-click="batchSetField(\'shelf\', false)"><span class="glyphicon glyphicon-menu-hamburger"></span>&nbsp;Set shelf</span>';
+      return directive;
     });
 
     myApp.directive('productListActions', function(Restangular, notification) {
@@ -37,7 +86,6 @@
         link: function(scope) {
           scope.addToCart = function() {
             var product = scope.entry.values;
-            console.log(product.ean, product.name, product.list, product.shelf);
             Restangular.all('wunderlist').post({
               ean: product.ean,
               name: product.name,
@@ -50,7 +98,7 @@
             });
           }
         },
-        template: '<a class="btn btn-default btn-xs" ng-href="http://www.codecheck.info/product.search?q={{product.values.ean}}" target="_blank"><span class="glyphicon glyphicon-search"></span>&nbsp;CodeCheck</a> \
+        template: '<a class="btn btn-default btn-xs" ng-href="http://www.codecheck.info/product.search?q={{entry.values.ean}}" target="_blank"><span class="glyphicon glyphicon-search"></span>&nbsp;CodeCheck</a> \
           <a class="btn btn-default btn-xs" ng-click="addToCart()"><span class="glyphicon glyphicon-shopping-cart"></span>&nbsp;Buy this</a>'
       };
     });
@@ -85,12 +133,13 @@
       var tag = nga.entity('tags').label('Product group');
       var product = nga.entity('products').identifier(nga.field('ean'));
 
-      list.listView().fields([
-        nga.field('id').label('Wunderlist List ID'),
+      list.editionView().fields([
         nga.field('name')
       ]);
+      list.listView().fields([
+        nga.field('id').label('Wunderlist List ID'),
+      ], list.editionView().fields());
       list.creationView().fields(list.listView().fields());
-      list.editionView().fields(list.listView().fields());
 
       tag.listView().fields([
         nga.field('name').isDetailLink(true),
@@ -99,10 +148,7 @@
       tag.creationView().fields(tag.listView().fields());
       tag.editionView().fields(tag.listView().fields());
 
-      product.listView().fields([
-        nga.field('ean')
-          .isDetailLink(true)
-          .label('EAN'),
+      var productBaseFields = [
         nga.field('name'),
         nga.field('list', 'reference')
           .targetEntity(list)
@@ -113,24 +159,33 @@
           .targetField(nga.field('name'))
           .label('Product group'),
         nga.field('shelf')
-      ])
+      ];
+      product.listView()
+        .fields([
+          nga.field('ean')
+            .isDetailLink(true)
+            .label('EAN')
+          ].concat(productBaseFields)
+        )
+        .actions(['batch', 'export', 'create', '<sort-list></sort-list>'])
         .batchActions(['delete',
           '<set-tag selection="selection"></set-tag>',
+          '<set-shelf selection="selection"></set-shelf>',
           '<set-list selection="selection"></set-list>'])
-        .listActions('<product-list-actions size="xs" entry="entry"></product-list-actions>');
+        .listActions('<product-list-actions entry="entry"></product-list-actions>');
       product.creationView().fields(product.listView().fields());
-      product.editionView().fields(product.listView().fields(), [
+      product.editionView().fields(productBaseFields.concat([
         nga.field('ean')
           .label('Barcode')
           .template('<angular-barcode ng-model="value" bc-type="svg"></angular-barcode>')
-      ]);
+      ]));
 
       admin.addEntity(product);
       admin.addEntity(list);
       admin.addEntity(tag);
 
       admin.menu(nga.menu()
-        .addChild(nga.menu(product).icon('<span class="glyphicon glyphicon-shopping-cart"></span>'))
+        .addChild(nga.menu(product).icon('<span class="glyphicon glyphicon-tag"></span>'))
         .addChild(nga.menu(list).icon('<span class="glyphicon glyphicon-list"></span>'))
         .addChild(nga.menu(tag).icon('<span class="glyphicon glyphicon-th-large"></span>'))
         .addChild(nga.menu()
@@ -144,7 +199,11 @@
       );
 
       admin.dashboard(nga.dashboard()
-        .addCollection(nga.collection(product).fields(product.listView().fields()))
+        .addCollection(nga.collection(product)
+          .fields(product.listView().fields())
+          .listActions('<product-list-actions entry="entry"></product-list-actions>')
+        )
+        .template('<div class="row"><div class="col-lg-12"><div class="page-header"><h1>Dashboard</h1></div></div></div> <div class="row dashboard-content"><div class="col-lg-12"><div class="panel panel-default" ng-repeat="collection in dashboardController.collections | orderElement"> <ma-dashboard-panel collection="collection" entries="dashboardController.entries[collection.name()]" datastore="dashboardController.datastore"></ma-dashboard-panel> </div></div></div>')
       );
 
       nga.configure(admin);
