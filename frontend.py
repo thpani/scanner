@@ -7,6 +7,7 @@ import sqlite3
 
 from flask import request, g, Flask, Response
 from flask_restful import Resource, Api, reqparse
+from flask_basicauth import BasicAuth
 
 from wunderlist import Wunderlist as WunderlistApi
 
@@ -19,11 +20,27 @@ with open('/etc/scanner.json') as f:
         'X-Client-ID': j['wunderlist']['clientid']
     }
     WUNDERLIST_LIST_ID = j['wunderlist']['default_list']
+    AUTH_USERNAME = j['auth']['username']
+    AUTH_PASSWORD = j['auth']['password']
+    AUTH_FREE_SUBNET = j['auth']['free_subnet']
+
 DATABASE = '/var/db/scanner/scanner.db'
 
 ###
 
 app = Flask(__name__, static_folder='client', static_url_path='')
+
+app.config['BASIC_AUTH_USERNAME'] = AUTH_USERNAME
+app.config['BASIC_AUTH_PASSWORD'] = AUTH_PASSWORD
+app.config['BASIC_AUTH_FORCE'] = True
+
+class RemoteBasicAuth(BasicAuth):
+    def authenticate(self):
+        if request.remote_addr.startswith(AUTH_FREE_SUBNET):
+            return True
+        return BasicAuth.authenticate(self)
+
+basic_auth = RemoteBasicAuth(app)
 
 # DB helpers
 # http://flask.pocoo.org/docs/0.12/patterns/sqlite3/

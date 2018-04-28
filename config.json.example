@@ -10,5 +10,10 @@
   },
   "scanner": {
     "dev": "/dev/input/event0"
+  },
+  "auth": {
+    "username": "BASIC_AUTH_USERNAME_HERE",
+    "password": "BASIC_AUTH_PASSWORD_HERE",
+    "free_subnet": "IP_ADDRESS_STARTSWITH_NEED_NO_AUTH_HERE",
   }
 }
